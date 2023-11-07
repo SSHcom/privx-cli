@@ -181,7 +181,7 @@ func sourceUpdateCmd() *cobra.Command {
 		Short: "Update source",
 		Long:  `Update source`,
 		Example: `
-	privx-cli sources update [access flags] JSON-FILE --id <SOURCE-ID>
+	privx-cli sources update [access flags] --id <SOURCE-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

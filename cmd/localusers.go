@@ -159,7 +159,7 @@ func localUserUpdateCmd() *cobra.Command {
 		Short: "Update local user",
 		Long:  `Update local user`,
 		Example: `
-	privx-cli local-users update [access flags] JSON-FILE --id <USER-ID>
+	privx-cli local-users update [access flags] --id <USER-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

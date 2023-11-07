@@ -221,7 +221,7 @@ func hostUpdateCmd() *cobra.Command {
 		Short: "Update host",
 		Long:  `Update host`,
 		Example: `
-	privx-cli hosts update [access flags] JSON-FILE --id <HOST-ID>
+	privx-cli hosts update [access flags] --id <HOST-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

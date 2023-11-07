@@ -150,7 +150,7 @@ func awsRoleUpdateCmd() *cobra.Command {
 		Short: "Update a AWS role granting PrivX roles",
 		Long:  `Update a AWS role granting PrivX roles`,
 		Example: `
-	privx-cli aws-roles update [access flags] JSON-FILE --id <AWS-ROLE-ID>
+	privx-cli aws-roles update [access flags] --id <AWS-ROLE-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

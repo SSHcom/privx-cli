@@ -61,6 +61,8 @@ func authorizerListCmd() *cobra.Command {
 	cmd.AddCommand(sslTrustAnchorShowCmd())
 	cmd.AddCommand(extenderTrustAnchorShowCmd())
 	cmd.AddCommand(certificateSearchCmd())
+	cmd.AddCommand(getCertByIDCmd())
+	cmd.AddCommand(certificateListCmd())
 
 	return cmd
 }
@@ -370,6 +372,70 @@ func certificateSearch(options authorizerOptions, args []string) error {
 
 	cert, err := api.SearchCert(options.offset, options.limit, options.sortkey,
 		options.normalize_sortdir(), &searchObject)
+	if err != nil {
+		return err
+	}
+
+	return stdout(cert)
+}
+
+//
+func certificateListCmd() *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:          "cert-list",
+		Short:        "Get all Certificates",
+		Long:         `Get all Certificates`,
+		SilenceUsage: true,
+		Example: `
+	privx-cli authorizer cert-list
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return certificateList()
+		},
+	}
+	return cmd
+}
+
+func certificateList() error {
+	api := authorizer.New(curl())
+
+	certificates, err := api.GetAllCertificates()
+	if err != nil {
+		return err
+	}
+
+	return stdout(certificates)
+}
+
+//
+//
+func getCertByIDCmd() *cobra.Command {
+	var ID string
+	cmd := &cobra.Command{
+		Use:          "get-cert",
+		Short:        "Get Certificate by ID",
+		Long:         `Get Certificate by ID`,
+		SilenceUsage: true,
+		Example: `
+	privx-cli authorizer get-cert [access flags] -id <ID>
+		`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getCertByID(ID)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&ID, "id", "", "Certificate ID")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func getCertByID(ID string) error {
+	api := authorizer.New(curl())
+
+	cert, err := api.GetCertByID(ID)
 	if err != nil {
 		return err
 	}

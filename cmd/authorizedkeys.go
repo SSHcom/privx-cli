@@ -117,7 +117,7 @@ func authorizedkeyCreateCmd() *cobra.Command {
 		Short: "Create new authorized key for user",
 		Long:  `Create new authorized key for user`,
 		Example: `
-	privx-cli authorized-keys create [access flags] JSON-FILE --user-id <USER-ID>
+	privx-cli authorized-keys create [access flags] --user-id <USER-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
@@ -160,7 +160,7 @@ func authorizedkeyUpdateCmd() *cobra.Command {
 		Short: "Update authorized key for user",
 		Long:  `Update authorized key for user`,
 		Example: `
-	privx-cli authorized-keys update [access flags] JSON-FILE --id <KEY-ID> --user-id <USER-ID>
+	privx-cli authorized-keys update [access flags] --id <KEY-ID> --user-id <USER-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

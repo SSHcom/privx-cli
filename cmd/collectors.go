@@ -140,7 +140,7 @@ func collectorUpdateCmd() *cobra.Command {
 		Short: "Update logconf collector",
 		Long:  `Update logconf collector`,
 		Example: `
-	privx-cli collectors update [access flags] JSON-FILE --collector-id <COLLECTOR-ID>
+	privx-cli collectors update [access flags] --collector-id <COLLECTOR-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

@@ -23,6 +23,7 @@ type roleOptions struct {
 
 func init() {
 	rootCmd.AddCommand(roleListCmd())
+	rootCmd.AddCommand(idendityProvidersListCmd())
 }
 
 //
@@ -186,7 +187,7 @@ func roleUpdateCmd() *cobra.Command {
 		Short: "Update role",
 		Long:  `Update role`,
 		Example: `
-	privx-cli roles update [access flags] JSON-FILE --id <ROLE-ID>
+	privx-cli roles update [access flags] --id <ROLE-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
@@ -333,3 +334,246 @@ func awsTokenShow(options roleOptions) error {
 
 	return stdout(token)
 }
+
+//
+// Idendity providers
+//
+
+func idendityProvidersListCmd() *cobra.Command {
+	options := searchOptions{}
+	cmd := &cobra.Command{
+		Use:   "idendity",
+		Short: "List all idendity providers",
+		Long:  `List all idendity providers`,
+		Example: `
+	privx-cli idendity [access flags] --offset offset --limit limit
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return idendityProvidersList(options.offset, options.limit)
+		},
+	}
+	flags := cmd.Flags()
+	flags.IntVar(&options.offset, "offset", 0, "Offset where to start fetching the items")
+	flags.IntVar(&options.limit, "limit", 50, "Number of items to return")
+
+	cmd.AddCommand(idendityCreateCmd())
+	cmd.AddCommand(idendityShowCmd())
+	cmd.AddCommand(idendityDeleteCmd())
+	cmd.AddCommand(idendityUpdateCmd())
+	cmd.AddCommand(idenditySearchCmd())
+
+	return cmd
+}
+
+func idendityProvidersList(offset, limit int) error {
+	api := rolestore.New(curl())
+
+	idendity, err := api.GetAllIdendityProviders(offset, limit)
+	if err != nil {
+		return err
+	}
+
+	return stdout(idendity.Items)
+}
+
+//
+//
+func idendityCreateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create new idendity provider",
+		Long:  `Create new idendity provider`,
+		Example: `
+	privx-cli idendity create [access flags] JSON-FILE
+		`,
+		Args:         cobra.ExactArgs(1),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return idendityCreate(args)
+		},
+	}
+
+	return cmd
+}
+
+func idendityCreate(args []string) error {
+	var newIDProvider rolestore.IdentityProvider
+	api := rolestore.New(curl())
+
+	err := decodeJSON(args[0], &newIDProvider)
+	if err != nil {
+		return err
+	}
+
+	id, err := api.CreateIdendityProvider(newIDProvider)
+	if err != nil {
+		return err
+	}
+
+	return stdout(id)
+}
+
+//
+//
+func idendityShowCmd() *cobra.Command {
+	var ID string
+
+	cmd := &cobra.Command{
+		Use:   "show",
+		Short: "Get idendity provider by ID",
+		Long:  `Get idendity provider by ID`,
+		Example: `
+	privx-cli idendity show [access flags] --id <IDENDITY-PROVIDER-ID>
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return idendityShow(ID)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&ID, "id", "", "Idendity provider ID")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func idendityShow(ID string) error {
+	api := rolestore.New(curl())
+
+	IDProvider, err := api.GetIdendityProviderByID(ID)
+	if err != nil {
+		return err
+	}
+
+	return stdout(IDProvider)
+}
+
+//
+//
+func idendityDeleteCmd() *cobra.Command {
+	var IDs string
+
+	cmd := &cobra.Command{
+		Use:   "delete",
+		Short: "Delete idendity providers",
+		Long:  `Delete idendity providers. Idendity provider's ID's are separated by commas when using multiple values, see example`,
+		Example: `
+	privx-cli idendity delete [access flags] --id <IDENDITY-PROVIDER-ID>,<IDENDITY-PROVIDER-ID>
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return idendityDelete(IDs)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&IDs, "id", "", "role ID")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func idendityDelete(IDs string) error {
+	api := rolestore.New(curl())
+
+	for _, id := range strings.Split(IDs, ",") {
+		err := api.DeleteIdendityProviderByID(id)
+		if err != nil {
+			return err
+		} else {
+			fmt.Println(id)
+		}
+	}
+
+	return nil
+}
+
+//
+//
+func idendityUpdateCmd() *cobra.Command {
+	var ID string
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Update idendity provider",
+		Long:  `Update idendity provider`,
+		Example: `
+	privx-cli idendity update [access flags] --id <IDENDITY-PROVIDER-ID> JSON-FILE
+		`,
+		Args:         cobra.ExactArgs(1),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return idendityUpdate(ID, args)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&ID, "id", "", "role ID")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func idendityUpdate(ID string, args []string) error {
+	var updateIDProvider rolestore.IdentityProvider
+	api := rolestore.New(curl())
+
+	err := decodeJSON(args[0], &updateIDProvider)
+	if err != nil {
+		return err
+	}
+
+	err = api.UpdateIdendityProvider(updateIDProvider, ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//
+//
+func idenditySearchCmd() *cobra.Command {
+	searchParams := rolestore.Params{}
+	var keywords string
+	cmd := &cobra.Command{
+		Use:   "search",
+		Short: "Search idendity provider",
+		Long:  `Search idendity provider`,
+		Example: `
+	privx-cli idendity search [access flags] --offset <OFFSET> --limit <LIMIT> --sortkey <SORTKEY> --sortdir <SORTDIR>
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return idenditySearch(searchParams, keywords)
+		},
+	}
+	flags := cmd.Flags()
+	flags.StringVar(&searchParams.Sortkey, "sortkey", "", "Sort by specific object property")
+	flags.StringVar(&searchParams.Sortdir, "sortdir", "ASC", "Sort direction, ASC or DESC")
+	flags.StringVar(&keywords, "keywords", "", "comma or space separated list of search keywords")
+	flags.IntVar(&searchParams.Limit, "limit", 50, "Number of items to return")
+	flags.IntVar(&searchParams.Offset, "offset", 0, "Offset where to start fetching the items")
+
+	return cmd
+}
+
+func idenditySearch(params rolestore.Params, keywords string) error {
+	api := rolestore.New(curl())
+
+	result, err := api.SearchIdendityProviders(
+		params.Offset,
+		params.Limit,
+		params.Sortkey,
+		strings.ToUpper(params.Sortdir),
+		keywords)
+	if err != nil {
+		return err
+	}
+
+	return stdout(result)
+}
+
+//
+//

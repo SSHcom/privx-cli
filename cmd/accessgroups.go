@@ -15,6 +15,7 @@ import (
 
 type accessGroupOptions struct {
 	accessGroupID string
+	caID          string
 	sortkey       string
 	sortdir       string
 	offset        int
@@ -29,8 +30,6 @@ func init() {
 	rootCmd.AddCommand(accessGroupListCmd())
 }
 
-//
-//
 func accessGroupListCmd() *cobra.Command {
 	options := accessGroupOptions{}
 
@@ -57,6 +56,8 @@ func accessGroupListCmd() *cobra.Command {
 	cmd.AddCommand(accessGroupSearchCmd())
 	cmd.AddCommand(accessGroupShowCmd())
 	cmd.AddCommand(accessGroupUpdateCmd())
+	cmd.AddCommand(renewCAKeyCmd())
+	cmd.AddCommand(revokeCAKeyCmd())
 
 	return cmd
 }
@@ -73,8 +74,6 @@ func accessGroupList(options accessGroupOptions) error {
 	return stdout(groups)
 }
 
-//
-//
 func accessGroupCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -110,8 +109,6 @@ func accessGroupCreate(cmd *cobra.Command, args []string) error {
 	return stdout(id)
 }
 
-//
-//
 func accessGroupSearchCmd() *cobra.Command {
 	options := accessGroupOptions{}
 
@@ -159,8 +156,6 @@ func accessGroupSearch(options accessGroupOptions, args []string) error {
 	return stdout(hosts)
 }
 
-//
-//
 func accessGroupShowCmd() *cobra.Command {
 	options := accessGroupOptions{}
 
@@ -195,8 +190,6 @@ func accessGroupShow(options accessGroupOptions) error {
 	return stdout(group)
 }
 
-//
-//
 func accessGroupUpdateCmd() *cobra.Command {
 	options := accessGroupOptions{}
 
@@ -205,7 +198,7 @@ func accessGroupUpdateCmd() *cobra.Command {
 		Short: "Update access group",
 		Long:  `Update access group`,
 		Example: `
-	privx-cli access-groups update [access flags] JSON-FILE --id <ACCESS-GROUP-ID>
+	privx-cli access-groups update [access flags] --id <ACCESS-GROUP-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
@@ -231,6 +224,76 @@ func accessGroupUpdate(options accessGroupOptions, args []string) error {
 	}
 
 	err = api.UpdateAccessGroup(options.accessGroupID, &updateAccessGroup)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func renewCAKeyCmd() *cobra.Command {
+	options := accessGroupOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "renew-ca",
+		Short: "Renew CA key",
+		Long:  `Renew CA key for a given access group`,
+		Example: `
+	privx-cli access-groups renew-ca [access flags] --id <ACCESS-GROUP-ID>
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return renewCAKey(options)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&options.accessGroupID, "id", "", "access group ID")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func renewCAKey(options accessGroupOptions) error {
+	api := authorizer.New(curl())
+
+	id, err := api.CreateAccessGroupsIdCas(options.accessGroupID)
+	if err != nil {
+		return err
+	}
+
+	return stdout(id)
+}
+
+func revokeCAKeyCmd() *cobra.Command {
+	options := accessGroupOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "revoke-ca",
+		Short: "Revoke CA key",
+		Long:  `Revoke CA key for a given access group`,
+		Example: `
+	privx-cli access-groups revoke-ca [access flags] --id <ACCESS-GROUP-ID> --ca-id <CA-ID>
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return revokeCAKey(options)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&options.accessGroupID, "id", "", "access group ID")
+	flags.StringVar(&options.caID, "ca-id", "", "CA ID")
+	cmd.MarkFlagRequired("id")
+	cmd.MarkFlagRequired("ca-id")
+
+	return cmd
+}
+
+func revokeCAKey(options accessGroupOptions) error {
+	api := authorizer.New(curl())
+
+	err := api.DeleteAccessGroupsIdCas(options.accessGroupID, options.caID)
 	if err != nil {
 		return err
 	}

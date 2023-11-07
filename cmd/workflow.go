@@ -195,7 +195,7 @@ func workflowUpdateCmd() *cobra.Command {
 		Short: "Update a workflow",
 		Long:  `Update a workflow`,
 		Example: `
-	privx-cli workflows update [access flags] JSON-FILE --id <WORKFLOW-ID>
+	privx-cli workflows update [access flags] --id <WORKFLOW-ID> JSON-FILE
 		`,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
