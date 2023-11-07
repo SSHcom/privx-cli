@@ -147,6 +147,44 @@ func requestShow(options requestOptions) error {
 	return stdout(requests)
 }
 
+func requestRevokeTargetRoleCmd() *cobra.Command {
+	options := requestOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "Revoke",
+		Short: "Revoke role",
+		Long:  `Revoke role by Request ID. Request ID's are separated by commas when using multiple values, see example.`,
+		Example: `
+	privx-cli requests delete [access flags] --id <REQUEST-ID>,<REQUEST-ID>
+		`,
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return requestRevokeTargetRole(options)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.StringVar(&options.requestID, "id", "", "request ID")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func requestRevokeTargetRole(options requestOptions) error {
+	api := workflow.New(curl())
+
+	for _, id := range strings.Split(options.requestID, ",") {
+		err := api.RevokeTargetRole(id)
+		if err != nil {
+			return err
+		} else {
+			fmt.Println(id)
+		}
+	}
+
+	return nil
+}
+
 //
 //
 func requestDeleteCmd() *cobra.Command {
