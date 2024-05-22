@@ -26,21 +26,27 @@ func init() {
 	rootCmd.AddCommand(idendityProvidersListCmd())
 }
 
-//
-//
 func roleListCmd() *cobra.Command {
+	options := searchOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "roles",
 		Short: "List and manage PrivX roles",
 		Long:  `List and manage PrivX roles`,
 		Example: `
-	privx-cli roles [access flags]
+	privx-cli roles [access flags] --offset offset --limit limit
 		`,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return roleList()
+			return roleList(options.offset, options.limit, options.sortdir, options.sortkey)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.IntVar(&options.offset, "offset", 0, "Offset where to start fetching the items")
+	flags.IntVar(&options.limit, "limit", 50, "Number of items to return")
+	flags.StringVar(&options.sortdir, "sortdir", "ASC", "Sort direction, ASC or DESC")
+	flags.StringVar(&options.sortkey, "sortkey", "name", "Sort by specific object property")
 
 	cmd.AddCommand(roleCreateCmd())
 	cmd.AddCommand(roleShowCmd())
@@ -53,10 +59,10 @@ func roleListCmd() *cobra.Command {
 	return cmd
 }
 
-func roleList() error {
+func roleList(offset, limit int, sortdir, sortkey string) error {
 	api := rolestore.New(curl())
 
-	roles, err := api.Roles()
+	roles, err := api.Roles(offset, limit, sortkey, sortdir)
 	if err != nil {
 		return err
 	}
@@ -64,8 +70,6 @@ func roleList() error {
 	return stdout(roles)
 }
 
-//
-//
 func roleCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -101,8 +105,6 @@ func roleCreate(args []string) error {
 	return stdout(id)
 }
 
-//
-//
 func roleShowCmd() *cobra.Command {
 	options := roleOptions{}
 
@@ -137,8 +139,6 @@ func roleShow(options roleOptions) error {
 	return stdout(role)
 }
 
-//
-//
 func roleDeleteCmd() *cobra.Command {
 	options := roleOptions{}
 
@@ -177,8 +177,6 @@ func roleDelete(options roleOptions) error {
 	return nil
 }
 
-//
-//
 func roleUpdateCmd() *cobra.Command {
 	options := roleOptions{}
 
@@ -220,8 +218,6 @@ func roleUpdate(options roleOptions, args []string) error {
 	return nil
 }
 
-//
-//
 func rolesMemberListCmd() *cobra.Command {
 	options := roleOptions{}
 
@@ -260,8 +256,6 @@ func roleMemberList(options roleOptions) error {
 	return stdout(members)
 }
 
-//
-//
 func roleResolveCmd() *cobra.Command {
 	options := roleOptions{}
 
@@ -296,8 +290,6 @@ func roleResolve(options roleOptions) error {
 	return stdout(id)
 }
 
-//
-//
 func awsTokenShowCmd() *cobra.Command {
 	options := roleOptions{}
 
@@ -377,8 +369,6 @@ func idendityProvidersList(offset, limit int) error {
 	return stdout(idendity.Items)
 }
 
-//
-//
 func idendityCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -414,8 +404,6 @@ func idendityCreate(args []string) error {
 	return stdout(id)
 }
 
-//
-//
 func idendityShowCmd() *cobra.Command {
 	var ID string
 
@@ -450,8 +438,6 @@ func idendityShow(ID string) error {
 	return stdout(IDProvider)
 }
 
-//
-//
 func idendityDeleteCmd() *cobra.Command {
 	var IDs string
 
@@ -490,8 +476,6 @@ func idendityDelete(IDs string) error {
 	return nil
 }
 
-//
-//
 func idendityUpdateCmd() *cobra.Command {
 	var ID string
 	cmd := &cobra.Command{
@@ -532,8 +516,6 @@ func idendityUpdate(ID string, args []string) error {
 	return nil
 }
 
-//
-//
 func idenditySearchCmd() *cobra.Command {
 	searchParams := rolestore.Params{}
 	var keywords string
