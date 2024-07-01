@@ -1,5 +1,8 @@
 # privx-cli
 
+The privx-cli-cli tool is no longer actively maintained. It is recommended to use it only for testing purposes and avoid using it in production environments.
+---
+
 This is a command line application to use with PrivX. The application supports On-Prem PrivX deployments, [PrivX on AWS](https://github.com/SSHcom/privx-on-aws) and PrivX SaaS.
 
 ## Getting Started
